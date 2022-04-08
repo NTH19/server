@@ -183,6 +183,16 @@ int mysql_open_cursor(THD *thd, select_result *result,
   {
     Materialized_cursor *materialized_cursor=
       result_materialize->materialized_cursor;
+    if (result_materialize->view_structure_only())
+    {
+      /*
+        If it was view_structure_only then only send metadata call was made
+        and there was no other call. So we have to "close" the cursor
+        explicitly (which redirect orig_table in the fields, and untie
+        it with closed tables)
+      */
+      materialized_cursor->on_table_fill_finished();
+    }
 
     /*
       NOTE: close_thread_tables() has been called in
